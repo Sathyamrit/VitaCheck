@@ -8,8 +8,9 @@ import AboutVitacheck from './pages/AboutVitacheck';
 import Support from './pages/Support';
 import Contact from './pages/Contact';
 import Privacy from './pages/Privacy';
+import Auth from './pages/Auth';
 
-type Page = 'home' | 'about-us' | 'about-vitacheck' | 'support' | 'contact' | 'privacy';
+type Page = 'home' | 'about-us' | 'about-vitacheck' | 'support' | 'contact' | 'privacy' | 'auth';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -26,6 +27,8 @@ function App() {
         return <Contact />;
       case 'privacy':
         return <Privacy />;
+      case 'auth':
+        return <Auth />;
       default:
         return (
           <>
