@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Hero: React.FC = () => {
   const [input, setInput] = useState('');
+  const navigate = useNavigate();
 
   return (
     <section className="bg-[#f7a221] py-16 px-4 flex flex-col items-center justify-center min-h-[400px]">
@@ -19,7 +21,10 @@ const Hero: React.FC = () => {
         </div>
       </div>
       
-      <button className="bg-gray-200 text-gray-800 px-8 py-3 rounded-full font-semibold shadow-md hover:bg-white transition-all">
+      <button 
+      className="bg-gray-200 text-gray-800 px-8 py-3 rounded-full font-semibold shadow-md hover:bg-white transition-all"
+        onClick={() => navigate('/questionnaire')}
+      >
         Try out our Questionnaire
       </button>
     </section>

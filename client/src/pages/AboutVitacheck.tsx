@@ -1,8 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Story from '../components/about-vitacheck/Story';
 import Values from '../components/about-vitacheck/Values';
 
 const About: React.FC = () => {
+  const navigate = useNavigate();
   return (
     <div className="bg-white">
       {/* Hero Header */}
@@ -31,7 +33,10 @@ const About: React.FC = () => {
             Join thousands of users who have taken control of their health 
             using our intelligent symptom analysis.
           </p>
-          <button className="bg-blue-600 text-white px-10 py-4 rounded-full font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
+          <button 
+            className="bg-blue-600 text-white px-10 py-4 rounded-full font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+            onClick={() => navigate('/questionnaire')}  
+          >
             Start Free Assessment
           </button>
         </section>

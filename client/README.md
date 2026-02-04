@@ -71,3 +71,9 @@ export default defineConfig([
   },
 ])
 ```
+
+
+
+
+
+npm install @react-oauth/google jwt-decode

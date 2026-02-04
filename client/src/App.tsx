@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import Hero from './components/home/Hero';
@@ -9,42 +10,24 @@ import Support from './pages/Support';
 import Contact from './pages/Contact';
 import Privacy from './pages/Privacy';
 import Auth from './pages/Auth';
-
-type Page = 'home' | 'about-us' | 'about-vitacheck' | 'support' | 'contact' | 'privacy' | 'auth';
+import Questionnaire from './pages/Questionnaire';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('home');
-
-  const renderContent = () => {
-    switch (currentPage) {
-      case 'about-us':
-        return <AboutUs />;
-      case 'about-vitacheck':
-        return <AboutVitacheck />;
-      case 'support':
-        return <Support />;
-      case 'contact':
-        return <Contact />;
-      case 'privacy':
-        return <Privacy />;
-      case 'auth':
-        return <Auth />;
-      default:
-        return (
-          <>
-            <Hero onStart={() => setCurrentPage('about-vitacheck')} />
-            <InfoSection />
-          </>
-        );
-    }
-  };
-
   return (
     <div className="flex flex-col min-h-screen bg-white font-sans antialiased text-gray-900">
-      <Navbar onNavigate={setCurrentPage} activePage={currentPage} />
+      <Navbar />
       
       <main className="flex-grow">
-        {renderContent()}
+        <Routes>
+          <Route path="/" element={<><Hero /><InfoSection /></>} />
+          <Route path="/about-us" element={<AboutUs />} />
+          <Route path="/about-vitacheck" element={<AboutVitacheck />} />
+          <Route path="/support" element={<Support />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/questionnaire" element={<Questionnaire />} />
+        </Routes>
       </main>
 
       <Footer />

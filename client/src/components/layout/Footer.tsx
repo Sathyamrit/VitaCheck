@@ -18,11 +18,8 @@ const Footer: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-black/10 pb-10">
           {/* Logo Section */}
           <div className="flex items-center gap-2">
-            <div className="bg-transparent border-2 border-gray-900 rounded-lg p-1.5 flex items-center justify-center">
-               <span className="font-bold text-2xl text-gray-900">V</span>
-            </div>
             <h2 className="text-3xl font-bold tracking-tighter text-gray-900">
-              ita Check
+              Vita Check
             </h2>
           </div>
 
