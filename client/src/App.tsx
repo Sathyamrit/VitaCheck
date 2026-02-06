@@ -11,6 +11,8 @@ import Contact from './pages/Contact';
 import Privacy from './pages/Privacy';
 import Auth from './pages/Auth';
 import Questionnaire from './pages/Questionnaire';
+import Dashboard from './pages/Dashboard';
+import MealPlan from './pages/MealPlan';
 
 function App() {
   return (
@@ -27,6 +29,8 @@ function App() {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/questionnaire" element={<Questionnaire />} />
+          <Route path="/dashboard/:taskId" element={<Dashboard />} />
+          <Route path="/meal-plan/:taskId" element={<MealPlan />} />
         </Routes>
       </main>
 

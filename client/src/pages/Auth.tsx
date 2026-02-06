@@ -11,9 +11,6 @@ const Auth: React.FC = () => {
       {/* Visual Side - Brand Identity */}
       <div className="md:w-1/2 bg-[#f7a221] p-12 flex flex-col justify-between min-h-[300px] md:min-h-screen">
         <div className="flex items-center gap-3">
-          <div className="bg-transparent border-[2.5px] border-gray-900 rounded-lg w-12 h-12 flex items-center justify-center">
-            <span className="text-gray-900 font-black text-3xl tracking-tighter">V</span>
-          </div>
           <h2 className="text-4xl font-black tracking-tighter text-gray-900 uppercase">VitaCheck</h2>
         </div>
         
