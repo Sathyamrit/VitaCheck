@@ -22,7 +22,7 @@ const Support: React.FC = () => {
               <h4 className="text-xl font-black tracking-tighter text-gray-900 mb-4 uppercase">Medical Note</h4>
               <p className="text-sm font-bold text-gray-600 leading-relaxed">
                 VitaCheck provides informational assessments based on AI symptom mapping. 
-                It is not a substitute for professional clinical diagnosis.[3, 4]
+                It is not a substitute for professional clinical diagnosis.
               </p>
             </div>
           </div>

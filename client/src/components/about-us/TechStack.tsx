@@ -12,7 +12,7 @@ const TechStack: React.FC = () => {
               <h3 className="text-2xl font-bold text-gray-900 tracking-tight mb-2">NLP Symptom Extraction</h3>
               <p className="text-gray-600 font-medium leading-relaxed">
                 Using Natural Language Processing, our Python service parses free-text inputs like "sandpaper skin" 
-                and maps them to clinical entities like follicular hyperkeratosis.[1, 2]
+                and maps them to clinical entities like follicular hyperkeratosis.
               </p>
             </div>
           </div>
@@ -22,7 +22,7 @@ const TechStack: React.FC = () => {
               <h3 className="text-2xl font-bold text-gray-900 tracking-tight mb-2">Vector-Based Prediction</h3>
               <p className="text-gray-600 font-medium leading-relaxed">
                 We utilize Cosine Similarity to compare your symptom profile against a global clinical database 
-                to calculate a similarity score for 13 essential vitamins and key minerals.[3, 4]
+                to calculate a similarity score for 13 essential vitamins and key minerals.
               </p>
             </div>
           </div>
@@ -32,7 +32,7 @@ const TechStack: React.FC = () => {
               <h3 className="text-2xl font-bold text-gray-900 tracking-tight mb-2">Algorithmic Recipe Closure</h3>
               <p className="text-gray-600 font-medium leading-relaxed">
                 The system maps identified gaps to high-density food sources, prioritizing bioavailability—ensuring 
-                iron sources are paired with Vitamin C for maximum absorption.[5, 6]
+                iron sources are paired with Vitamin C for maximum absorption.
               </p>
             </div>
           </div>

@@ -9,21 +9,21 @@ const ContactDetails: React.FC = () => {
           <p className="text-3xl font-black tracking-tighter text-gray-900 underline decoration-[#f7a221] decoration-4">
             support@vitacheck.ai
           </p>
-          <p className="text-xl font-bold text-gray-500">1-800-VITA-HELP</p>
+          <p className="text-xl font-bold text-gray-500">1-800-1234-1234</p>
         </div>
       </div>
 
       <div className="p-10 bg-gray-900 rounded-[3rem] text-white">
         <h3 className="text-xl font-black tracking-tighter mb-6 uppercase">Privacy & Data</h3>
-        <p className="text-gray-400 font-bold leading-relaxed mb-8 text-sm">
+        {/* <p className="text-gray-400 font-bold leading-relaxed mb-8 text-sm">
           Your communications are protected. We utilize end-to-end AES-256 encryption 
           for all messages containing symptom descriptions to ensure HIPAA compliance.[2, 3]
-        </p>
-        <div className="flex gap-4">
+        </p> */}
+        {/* <div className="flex gap-4">
           <div className="w-12 h-12 rounded-full border border-gray-700 flex items-center justify-center font-black text-[10px]">GDPR</div>
           <div className="w-12 h-12 rounded-full border border-gray-700 flex items-center justify-center font-black text-[10px]">HIPAA</div>
           <div className="w-12 h-12 rounded-full border border-gray-700 flex items-center justify-center font-black text-[10px]">AES</div>
-        </div>
+        </div> */}
       </div>
       
       <div className="pt-6 border-t border-gray-100">

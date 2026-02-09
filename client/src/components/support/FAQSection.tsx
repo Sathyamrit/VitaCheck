@@ -6,10 +6,10 @@ const FAQSection: React.FC = () => {
       q: "Can I trust the yellow teeth assessment?",
       a: "The AI distinguishes between extrinsic stains (coffee/tobacco) and intrinsic yellowing caused by Vitamin D and Calcium deficiencies that affect enamel development ."
     },
-    {
-      q: "Is my health data secure?",
-      a: "Yes. We adhere to 'Privacy by Design' principles. All data is encrypted using AES-256 and processed in HIPAA-compliant environments.[10, 2]"
-    }
+    // {
+    //   q: "Is my health data secure?",
+    //   a: "Yes. We adhere to 'Privacy by Design' principles. All data is encrypted using AES-256 and processed in HIPAA-compliant environments.[10, 2]"
+    // }
   ];
 
   return (

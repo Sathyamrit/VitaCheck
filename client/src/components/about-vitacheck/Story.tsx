@@ -14,11 +14,11 @@ const Story: React.FC = () => {
         <p className="text-lg text-gray-600 leading-relaxed mb-6">
           A significant portion of the global population experiences chronic fatigue, weakened immunity, and 
           cognitive difficulties without understanding the cause. Research shows these often stem 
-          from simple micronutrient deficiencies.[1, 2]
+          from simple micronutrient deficiencies.
         </p>
         <p className="text-lg text-gray-600 leading-relaxed">
           VitaCheck was born to break down the barriers of cost, fear, and awareness that prevent 
-          people from getting the care they need.[3, 4]
+          people from getting the care they need.
         </p>
       </div>
 

@@ -23,9 +23,9 @@ const Auth: React.FC = () => {
           </p>
         </div>
         
-        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 opacity-60">
+        {/* <div className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 opacity-60">
           HIPAA & GDPR COMPLIANT INFRASTRUCTURE 
-        </div>
+        </div> */}
       </div>
 
       {/* Form Side */}

@@ -19,6 +19,8 @@ status_db = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True
 def generate_ai_diagnosis(user_id, patient_data):
     try:
         symptoms_list = ", ".join(patient_data['symptoms'])
+        # description = patient_data.get('description', '')
+        description = patient_data.get('description', 'No additional narrative provided.')
         
         # 1. Real AI System Prompt
         system_instructions = (
@@ -46,11 +48,13 @@ def generate_ai_diagnosis(user_id, patient_data):
             "RESTRICTION: Return NO introductory text or reasoning tags like <think>. Return ONLY the JSON."
         )
 
-        user_input = (
-            f"Patient: {patient_data['age']}yo {patient_data['sex']}. "
-            f"Symptoms: {symptoms_list}. "
-            "Generate report in JSON."
-        )
+        # user_input = (
+        #     f"Patient: {patient_data['age']}yo {patient_data['sex']}. "
+        #     f"Symptoms: {symptoms_list}. "
+        #     "Generate report in JSON."
+        # )
+
+        user_input = f"Patient: {patient_data['age']}yo {patient_data['sex']}. Symptoms: {symptoms_list}. Narrative: {description}"
 
         # 2. Local Inference using DeepSeek-R1 via Ollama
         response = ollama.chat(

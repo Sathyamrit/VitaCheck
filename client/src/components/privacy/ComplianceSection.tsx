@@ -25,7 +25,7 @@ const ComplianceSection: React.FC = () => {
         <h3 className="text-lg font-black tracking-tighter text-gray-900 mb-4 uppercase">Medical Disclaimer</h3>
         <p className="text-xs font-bold text-gray-500 leading-relaxed italic">
           VitaCheck results are for informational purposes only and do not constitute medical advice. Always consult a healthcare professional 
-          before starting new dietary supplements.[5, 6]
+          before starting new dietary supplements.
         </p>
       </div>
     </div>

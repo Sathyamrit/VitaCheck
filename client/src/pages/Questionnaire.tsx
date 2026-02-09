@@ -105,14 +105,14 @@ const Questionnaire: React.FC = () => {
 
   const handleGenerateReport = async () => {
     try {
-      console.log("Sending Description:", userDescription);
+      // console.log("Sending Description:", userDescription);
       const response = await fetch("http://localhost:8000/generate-report/user_123", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_name: "Anjana",
-          age: 21,
-          sex: "Female",
+          user_name: "Sathya",
+          age: 25,
+          sex: "Male",
           symptoms: Object.keys(responses).filter(s => responses[s] > 0),
           raw_scores: responses,
           description: userDescription,

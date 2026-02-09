@@ -22,10 +22,14 @@ pip install ollama
 
 
 
-
+Get-Process ollama* | Stop-Process -Force
 
 pip install uvicorn fastapi ollama dramatiq[redis] redis pydantic
 
 
 
 ### nutritional values - marcros n all
+
+### Lifestyle
+
+### Height weight n all

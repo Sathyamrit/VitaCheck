@@ -1,7 +1,7 @@
 import React from 'react';
 import PrivacyHero from '../components/privacy/PrivacyHero';
 import DataPolicy from '../components/privacy/DataPolicy';
-import ComplianceSection from '../components/privacy/ComplianceSection';
+// import ComplianceSection from '../components/privacy/ComplianceSection';
 
 const Privacy: React.FC = () => {
   return (
