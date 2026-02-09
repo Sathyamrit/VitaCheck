@@ -25,3 +25,7 @@ pip install ollama
 
 
 pip install uvicorn fastapi ollama dramatiq[redis] redis pydantic
+
+
+
+### nutritional values - marcros n all

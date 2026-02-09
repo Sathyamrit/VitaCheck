@@ -17,7 +17,7 @@ const Privacy: React.FC = () => {
           
           {/* Compliance Sidebar */}
           <div className="lg:col-span-1">
-            <ComplianceSection />
+            {/* <ComplianceSection /> */}
           </div>
         </div>
       </main>

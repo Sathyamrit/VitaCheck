@@ -43,3 +43,16 @@ async def get_status(task_id: str):
         "status": status if status else "not_found",
         "data": result if result else None
     }
+
+@app.post("/generate-meal-plan")
+async def start_meal_generation(data: dict):
+    # Triggers the new recipe actor
+    task = tasks.generate_meal_plan.send(data['diagnosis'], data['preferences'])
+    redis_client.set(f"recipes_status:{task.message_id}", "processing")
+    return {"recipe_task_id": task.message_id}
+
+@app.get("/recipe-status/{task_id}")
+async def get_recipe_status(task_id: str):
+    status = redis_client.get(f"recipes_status:{task_id}")
+    data = redis_client.get(f"recipes_result:{task_id}")
+    return {"status": status, "data": data}

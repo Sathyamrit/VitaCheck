@@ -1,115 +1,197 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
+// 1. Interfaces for Type Safety
+interface Recipe {
+  name: string;
+  rationale: string; // Unified from "reason" and "rationale"
+  prep_time: string; // Unified from "time" and "prep_time"
+}
+
+interface DiagnosisData {
+  diagnosis: string;
+}
+
 const MealPlan: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
-  const [report, setReport] = useState<any>(null);
-  const [recipes, setRecipes] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
+  // 2. State Management
+  const [diagnosisData, setDiagnosisData] = useState<DiagnosisData | null>(null);
+  const [genTaskId, setGenTaskId] = useState<string | null>(null);
+  const [recipes, setRecipes] = useState<Recipe[] | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const [preferences, setPreferences] = useState({
+    dietType: 'Standard',
+    allergies: '',
+    cookingTime: '30 mins'
+  });
+
+  const dietStyles = ['Standard', 'Vegetarian', 'Vegan', 'Keto', 'Paleo', 'Mediterranean', 'Gluten-Free'];
+
+  // 3. Effect: Fetch Initial Diagnosis
   useEffect(() => {
-    const loadData = async () => {
+    const fetchDiagnosis = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/report-status/${taskId}`);
-        const result = await response.json();
-        
-        if (result.status === 'completed' && result.data) {
-          const data = JSON.parse(result.data);
-          setReport(data);
-
-// Robust check: Ensure diagnosis is treated as a string
-const diagStr = String(data.diagnosis || "");
-
-// Pattern: Diagnosis-to-Recipe Mapping (Simulation of RAG) [2, 3]
-let targetedRecipes = [];
-if (diagStr.toLowerCase().includes("iron") || diagStr.toLowerCase().includes("anemia")) {
-  targetedRecipes = [
-    { name: "Spinach & Lentil Curry", reason: "Rich in iron and vitamin C for anemia support." },
-    { name: "Beetroot Salad", reason: "Beetroot helps improve hemoglobin levels." }
-  ];
-} else if (diagStr.toLowerCase().includes("vitamin d") || diagStr.toLowerCase().includes("calcium")) {
-  targetedRecipes = [
-    { name: "Grilled Salmon Bowl", reason: "Salmon is a great source of vitamin D." },
-    { name: "Tofu & Broccoli Stir Fry", reason: "Tofu and broccoli are rich in calcium." }
-  ];
-} else {
-  targetedRecipes = [
-    { name: "Balanced Quinoa Salad", reason: "Provides a variety of nutrients for general wellness." }
-  ];
-}
-
-setRecipes(targetedRecipes);
-setLoading(false);
+        const res = await fetch(`http://localhost:8000/report-status/${taskId}`);
+        const result = await res.json();
+        if (result.status === 'completed') {
+          const parsedData = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
+          setDiagnosisData(parsedData);
         }
-      } catch (err) {
-        console.error("Polling error:", err);
+      } catch (error) {
+        console.error("Failed to fetch diagnosis:", error);
       }
     };
-    loadData();
+    if (taskId) fetchDiagnosis();
   }, [taskId]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-        <div className="w-16 h-16 border-4 border-[#f7a221] border-t-transparent rounded-full animate-spin mb-4" />
-        <h2 className="text-2xl font-black uppercase tracking-tighter text-gray-400">Synthesizing Meal Plan...</h2>
-      </div>
-    );
+  // 4. Effect: Poll for Recipe Generation Status
+  useEffect(() => {
+    if (!genTaskId) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`http://localhost:8000/recipe-status/${genTaskId}`);
+        const result = await res.json();
+
+        if (result.status === 'completed') {
+          const parsedRecipes = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
+          setRecipes(parsedRecipes);
+          setLoading(false);
+          clearInterval(interval);
+        }
+      } catch (error) {
+        console.error("Polling error:", error);
+        setLoading(false);
+        clearInterval(interval);
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [genTaskId]);
+
+  // 5. Action: Trigger AI Generation
+  const handleStartGeneration = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("http://localhost:8000/generate-meal-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          diagnosis: diagnosisData?.diagnosis, 
+          preferences: preferences 
+        })
+      });
+      const data = await res.json();
+      setGenTaskId(data.recipe_task_id);
+    } catch (error) {
+      console.error("Failed to start generation:", error);
+      setLoading(false);
+    }
+  };
+
+  // 6. Early Return for Loading State
+  if (!diagnosisData) {
+    return <div className="p-20 text-center font-black animate-pulse text-gray-400">Loading Clinical Data...</div>;
   }
 
   return (
     <div className="max-w-6xl mx-auto py-16 px-6">
-      {/* Header with Navigation [4] */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
-        <div>
-          <button 
-            onClick={() => navigate(-1)} 
-            className="mb-6 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-[#f7a221] transition-colors"
-          >
-            ← Return to Dashboard
-          </button>
-          <h1 className="text-7xl font-black tracking-tighter uppercase leading-none">Dietary Therapy</h1>
-          <p className="text-gray-400 font-bold uppercase text-xs mt-4 tracking-widest">
-            Targeting: <span className="text-[#f7a221]">{report?.diagnosis}</span>
-          </p>
-        </div>
-        <div className="bg-gray-900 text-white px-8 py-4 rounded-3xl text-xs font-black uppercase tracking-widest shadow-xl">
-          Verified Analysis
-        </div>
-      </div>
+      <button 
+        onClick={() => navigate(-1)} 
+        className="mb-8 text-xs font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors"
+      >
+        ← Back to Dashboard
+      </button>
 
-      {/* Recipe Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-        {recipes.map((r, i) => (
-          <div key={i} className="bg-gray-50 rounded-[3.5rem] p-12 border border-gray-100 hover:bg-white hover:shadow-2xl transition-all group relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 text-[80px] font-black text-gray-100 group-hover:text-[#f7a221]/10 leading-none pointer-events-none">
-              0{i + 1}
-            </div>
-            <h3 className="text-4xl font-black uppercase mb-6 group-hover:text-[#f7a221] transition-colors leading-tight pr-12">
-              {r.name}
-            </h3>
-            <div className="space-y-4">
-              {/* <span className="text-[10px] font-black uppercase text-blue-600 underline tracking-widest block">
-                Clinical Rationale
-              </span> */}
-              <p className="text-gray-500 font-medium italic leading-relaxed text-lg">
-                "{r.reason}"
+      {!recipes ? (
+        /* UI: Preference Selection */
+        <div className="bg-gray-50 rounded-[3rem] p-12 border border-gray-100 shadow-sm max-w-2xl mx-auto">
+          <h1 className="text-4xl font-black uppercase tracking-tighter mb-2">Meal Plan Customizer</h1>
+          <p className="text-gray-500 mb-10 text-sm font-bold uppercase tracking-widest">
+            Targeting: <span className="text-black">{diagnosisData.diagnosis}</span>
+          </p>
+
+          <div className="space-y-8">
+            <section>
+              <label className="block text-xs font-black uppercase mb-4 text-[#f7a221]">Dietary Style</label>
+              <div className="flex flex-wrap gap-3">
+                {dietStyles.map(type => (
+                  <button 
+                    key={type}
+                    type="button"
+                    onClick={() => setPreferences({ ...preferences, dietType: type })}
+                    className={`px-6 py-3 rounded-full text-xs font-black uppercase transition-all ${
+                      preferences.dietType === type 
+                        ? 'bg-[#f7a221] text-white shadow-lg' 
+                        : 'bg-white border border-gray-200 text-gray-400 hover:border-[#f7a221]'
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section>
+              <label className="block text-xs font-black uppercase mb-2">Known Allergies / Exclusions</label>
+              <input 
+                type="text" 
+                placeholder="e.g. Peanuts, Shellfish..."
+                className="w-full p-4 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#f7a221] transition-all"
+                value={preferences.allergies}
+                onChange={(e) => setPreferences({ ...preferences, allergies: e.target.value })}
+              />
+            </section>
+
+            <button 
+              onClick={handleStartGeneration}
+              disabled={loading}
+              className="w-full bg-gray-900 text-white py-5 rounded-3xl font-black uppercase text-sm tracking-widest hover:bg-[#f7a221] disabled:bg-gray-300 disabled:cursor-not-allowed transition-all"
+            >
+              {loading ? "AI is calculating macros..." : "Generate Personalized Plan"}
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* UI: Recipe Display */
+        <div className="space-y-12">
+          <header className="flex justify-between items-end">
+            <div>
+              <h1 className="text-7xl font-black tracking-tighter uppercase leading-none">Suggested Meals</h1>
+              <p className="text-gray-400 font-bold uppercase text-xs mt-4 tracking-widest">
+                Optimized for {preferences.dietType} preferences
               </p>
             </div>
-          </div>
-        ))}
-      </div>
+            <button 
+              onClick={() => setRecipes(null)} 
+              className="text-xs font-black uppercase underline decoration-2 underline-offset-4 hover:text-[#f7a221] transition-colors"
+            >
+              Reset Filters
+            </button>
+          </header>
 
-      {/* Compliance Footer [5] */}
-      <div className="mt-20 pt-10 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
-        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter text-center md:text-left">
-          Clinical data processed in accordance with DPDP Act 2023 [5]
-        </p>
-        <button className="bg-[#f7a221] text-white px-10 py-4 rounded-full font-black uppercase tracking-widest text-xs hover:scale-105 transition-all shadow-lg">
-          Download PDF Guide
-        </button>
-      </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {recipes.map((r, i) => (
+              <div key={i} className="bg-white rounded-[3.5rem] p-10 border border-gray-100 shadow-2xl hover:scale-[1.02] transition-all relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-2 h-full bg-[#f7a221]" />
+                <h3 className="text-3xl font-black uppercase mb-4 leading-tight">{r.name}</h3>
+                <p className="text-gray-500 italic leading-relaxed mb-6">"{r.rationale}"</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-black uppercase bg-gray-100 px-3 py-1 rounded-full text-gray-500">
+                    Prep Time: {r.prep_time}
+                  </span>
+                  <button className="text-[#f7a221] font-black uppercase text-xs hover:underline">
+                    View Recipe Details →
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

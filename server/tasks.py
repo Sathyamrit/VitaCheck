@@ -100,3 +100,48 @@ def generate_ai_diagnosis(user_id, patient_data):
         if message:
             status_db.set(f"status:{message.message_id}", "failed")
         raise e
+    
+@dramatiq.actor(max_retries=3)
+def generate_meal_plan(diagnosis, preferences):
+    try:
+        # 1. Specialized Prompt for Bioavailability [2]
+        system_instructions = (
+            "ACT AS: A Clinical Dietitian and Gourmet Chef. "
+            "TASK: Generate a 2-day sample meal plan to address a specific deficiency. "
+            "RULES: "
+            f"1. ADHERENCE: Strictly follow these preferences: {preferences}. "
+            f"2. SAFETY: Omit all ingredients related to these allergies: {preferences['allergies']}. "
+            "3. NUTRITION: Prioritize high nutrient density for the diagnosed condition. "
+            "FORMAT: Return ONLY a JSON list of objects with 'name', 'rationale', 'prep_time'."
+        )
+
+        user_input = f"Diagnosis: {diagnosis}. Generate a plan in JSON format."
+
+        # 2. Local Inference via DeepSeek-R1 [3, 4]
+        response = ollama.chat(
+            model='deepseek-r1:8b',
+            messages=[
+                {'role': 'system', 'content': system_instructions},
+                {'role': 'user', 'content': user_input}
+            ]
+        )
+        
+        raw_text = response['message']['content']
+        json_match = re.search(r'\[.*\]', raw_text, re.DOTALL) # Match JSON array
+        
+        if not json_match:
+            raise ValueError("AI failed to generate a recipe list.")
+
+        recipes = json.loads(json_match.group())
+
+        # 3. Store in Redis using a unique key for recipes
+        msg = CurrentMessage.get_current_message()
+        if msg:
+            status_db.set(f"recipes_result:{msg.message_id}", json.dumps(recipes))
+            status_db.set(f"recipes_status:{msg.message_id}", "completed")
+
+    except Exception as e:
+        msg = CurrentMessage.get_current_message()
+        if msg:
+            status_db.set(f"recipes_status:{msg.message_id}", "failed")
+        raise e    

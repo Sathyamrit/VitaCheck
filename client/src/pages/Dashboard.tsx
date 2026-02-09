@@ -53,9 +53,9 @@ const Dashboard: React.FC = () => {
           <section className="bg-white rounded-[2rem] p-10 shadow-2xl border border-gray-50">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-[#f7a221] font-black uppercase text-xs tracking-widest">Initial Diagnosis</h3>
-              <div className="text-[10px] bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-black uppercase">
+              {/* <div className="text-[10px] bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-black uppercase">
                 Confidence: 94.2% 
-              </div>
+              </div> */}
             </div>
             <p className="text-3xl font-bold italic leading-tight text-gray-900 mb-8">
               "{report?.diagnosis}"
