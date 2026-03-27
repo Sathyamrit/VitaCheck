@@ -1,0 +1,28 @@
+{
+  "timestamp": "2026-03-26 18:42:33",
+  "configuration": {
+    "ollama_url": "http://localhost:11434",
+    "prompt_length": 404,
+    "runs_per_model": 3
+  },
+  "results": [
+    {
+      "model": "deepseek-r1:8b",
+      "ttft_avg_ms": 720.2043533325195,
+      "ttft_min_ms": 614.9532794952393,
+      "ttft_max_ms": 898.6403942108154,
+      "tps_avg": 42.724341338918386,
+      "tps_min": 42.40665156513703,
+      "tps_max": 42.88921268607175,
+      "latency_avg_ms": 56307.50854810079,
+      "latency_min_ms": 51052.82187461853,
+      "latency_max_ms": 64942.64221191406,
+      "tokens_avg": 2404.3333333333335,
+      "runs_completed": 3
+    }
+  ],
+  "summary": {
+    "models_tested": 1,
+    "baseline_model": "deepseek-r1:8b"
+  }
+}

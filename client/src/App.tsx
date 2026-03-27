@@ -10,9 +10,10 @@ import Support from './pages/Support';
 import Contact from './pages/Contact';
 import Privacy from './pages/Privacy';
 import Auth from './pages/Auth';
-import Questionnaire from './pages/Questionnaire';
 import Dashboard from './pages/Dashboard';
 import MealPlan from './pages/MealPlan';
+import { DiagnosticDashboard } from './pages/DiagnosticDashboard';
+import { Diagnostic } from './pages/Diagnostic';
 
 function App() {
   return (
@@ -28,9 +29,11 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/questionnaire" element={<Questionnaire />} />
+          <Route path="/questionnaire" element={<DiagnosticDashboard />} />
+          <Route path="/diagnostic" element={<Diagnostic />} />
           <Route path="/dashboard/:taskId" element={<Dashboard />} />
           <Route path="/meal-plan/:taskId" element={<MealPlan />} />
+          <Route path="/diagnostic-dashboard" element={<DiagnosticDashboard />} />
         </Routes>
       </main>
 

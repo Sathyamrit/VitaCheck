@@ -12,7 +12,7 @@ const Hero: React.FC = () => {
   //     }
   //   };
   const handleStartAssessment = () => {
-    navigate('/questionnaire');
+    navigate('/diagnostic-dashboard');
   };
   return (
     <section className="relative bg-[#f7a221] overflow-hidden py-24 px-6 flex items-center justify-center min-h-[500px]">

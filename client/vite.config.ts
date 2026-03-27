@@ -8,4 +8,13 @@ export default defineConfig({
     react()
     , tailwindcss()
   ],
+  server: {
+    proxy: {
+      '/chat': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+  }
 })
