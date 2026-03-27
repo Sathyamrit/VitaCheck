@@ -14,6 +14,7 @@ import Dashboard from './pages/Dashboard';
 import MealPlan from './pages/MealPlan';
 import { DiagnosticDashboard } from './pages/DiagnosticDashboard';
 import { Diagnostic } from './pages/Diagnostic';
+import RAGDashboard from './components/RAGDashboard/RAGDashboard';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
           <Route path="/dashboard/:taskId" element={<Dashboard />} />
           <Route path="/meal-plan/:taskId" element={<MealPlan />} />
           <Route path="/diagnostic-dashboard" element={<DiagnosticDashboard />} />
+          <Route path="/rag-dashboard" element={<RAGDashboard />} />
         </Routes>
       </main>
 
