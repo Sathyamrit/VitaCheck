@@ -25,7 +25,7 @@ const Hero: React.FC = () => {
         </h1>
 
         <p className="text-gray-900 font-bold mb-10 text-lg md:text-xl max-w-xl">
-          Powered by Functional Medicine and AI-Driven Insights to map your symptoms to real solutions.
+          Advanced AI reasoning with micronutrient database and real-time drug interaction checking.
         </p>
 
         <button 

@@ -8,8 +8,7 @@ const MissionHero: React.FC = () => {
           DEMOCRATIZING <br />VITALITY.
         </h1>
         <p className="text-xl md:text-2xl text-gray-900 font-bold max-w-2xl mx-auto leading-tight">
-          We bridge the gap between "feeling off" and feeling optimal using 
-          non-invasive AI diagnostics and personalized nutrition.
+          Advanced AI reasoning with drug-nutrient interaction detection and personalized micronutrient recommendations grounded in medical evidence.
         </p>
       </div>
     </section>

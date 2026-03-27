@@ -12,13 +12,13 @@ const Story: React.FC = () => {
       <div>
         <h2 className="text-4xl font-bold tracking-tighter mb-6 text-gray-900">Why we built VitaCheck</h2>
         <p className="text-lg text-gray-600 leading-relaxed mb-6">
-          A significant portion of the global population experiences chronic fatigue, weakened immunity, and 
-          cognitive difficulties without understanding the cause. Research shows these often stem 
-          from simple micronutrient deficiencies.
+          Micronutrient deficiencies affect billions silently—causing brain fog, fatigue, weakened immunity, and poor wound healing. 
+          Yet clinical testing is expensive, inaccessible, or dismissed as "just getting older." Traditional medicine overlooks 
+          subclinical deficiencies until they become serious health crises.
         </p>
         <p className="text-lg text-gray-600 leading-relaxed">
-          VitaCheck was born to break down the barriers of cost, fear, and awareness that prevent 
-          people from getting the care they need.
+          VitaCheck uses advanced AI reasoning to bridge this gap—providing evidence-based micronutrient insights without 
+          blood tests, making prevention accessible to everyone.
         </p>
       </div>
 

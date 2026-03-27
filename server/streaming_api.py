@@ -39,6 +39,13 @@ class ChatRequest(BaseModel):
     context: dict = {}  # Patient history
 
 
+class RecipeGenerationRequest(BaseModel):
+    """Request for recipe generation from diagnosis."""
+    diagnosis: str
+    nutrients: list[str] = []
+    preferences: dict = {}
+
+
 class ExtractedSymptoms(BaseModel):
     """Structured symptom data from Stage 1."""
     symptoms: list[str]
@@ -433,6 +440,120 @@ def create_app() -> FastAPI:
             rating=request_body.get("rating", 3)
         )
         return {"status": "feedback_recorded"}
+    
+    # ====== RECIPE GENERATION ENDPOINT (Phase 5) ======
+    @app.post("/generate-recipes")
+    async def generate_recipes(request: RecipeGenerationRequest):
+        """
+        Generate personalized recipes using Groq API based on diagnosis and nutrients.
+        
+        Takes the diagnosis output and uses Groq to generate 3 recipes optimized for
+        the identified nutrient deficiencies.
+        """
+        try:
+            # Build nutrition-focused prompt
+            nutrients_str = ", ".join(request.nutrients) if request.nutrients else "essential micronutrients"
+            diet_type = request.preferences.get("dietType", "Standard")
+            allergies = request.preferences.get("allergies", "None")
+            
+            prompt = f"""You are a culinary nutritionist. Based on the following medical diagnosis, generate exactly 3 personalized recipes.
+
+MEDICAL DIAGNOSIS:
+{request.diagnosis[:800]}
+
+TARGET NUTRIENTS TO INCLUDE:
+{nutrients_str}
+
+DIETARY PREFERENCES:
+- Diet Type: {diet_type}
+- Allergies/Restrictions: {allergies}
+- Preferred Cooking Time: {request.preferences.get('cookingTime', '30-45 minutes')}
+
+Generate recipes in this EXACT JSON format only (no markdown, no extra text):
+{{
+  "recipes": [
+    {{
+      "name": "Recipe Name",
+      "ingredients": ["ingredient 1", "ingredient 2", "ingredient 3"],
+      "instructions": ["step 1", "step 2", "step 3"],
+      "prep_time": "20 mins",
+      "cooking_time": "25 mins",
+      "servings": 2,
+      "nutrients_provided": ["nutrient 1", "nutrient 2"],
+      "rationale": "Why this recipe targets the identified deficiencies"
+    }},
+    {{...}},
+    {{...}}
+  ]
+}}"""
+            
+            # Call Groq API for recipe generation
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    GROQ_ENDPOINT,
+                    headers={
+                        "Authorization": f"Bearer {GROQ_API_KEY}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "mixtral-8x7b-32768",
+                        "messages": [
+                            {
+                                "role": "system",
+                                "content": "You are an expert culinary nutritionist. Generate only valid JSON, no markdown or extra text."
+                            },
+                            {
+                                "role": "user",
+                                "content": prompt
+                            }
+                        ],
+                        "temperature": 0.7,
+                        "max_tokens": 2000,
+                    }
+                )
+                
+                if response.status_code != 200:
+                    return {
+                        "error": f"Groq API error: {response.status_code}",
+                        "recipes": []
+                    }
+                
+                result = response.json()
+                content = result.get("choices", [{}])[0].get("message", {}).get("content", "{}")
+                
+                # Parse JSON from response
+                try:
+                    recipes_data = json.loads(content)
+                    return recipes_data
+                except json.JSONDecodeError:
+                    # Try to extract JSON from markdown if present
+                    if "```json" in content:
+                        json_str = content.split("```json")[1].split("```")[0]
+                        recipes_data = json.loads(json_str)
+                        return recipes_data
+                    elif "{" in content:
+                        # Find first { and last }
+                        start = content.find("{")
+                        end = content.rfind("}") + 1
+                        recipes_data = json.loads(content[start:end])
+                        return recipes_data
+                    else:
+                        return {
+                            "error": "Could not parse recipe response",
+                            "recipes": [],
+                            "raw_response": content[:500]
+                        }
+                        
+        except httpx.TimeoutException:
+            return {
+                "error": "Recipe generation timed out",
+                "recipes": []
+            }
+        except Exception as e:
+            return {
+                "error": f"Recipe generation failed: {str(e)}",
+                "recipes": []
+            }
     
     # ====== NEW STREAMING ENDPOINT (Phase 1) ======
     @app.post("/chat/stream")

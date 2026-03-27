@@ -4,20 +4,20 @@ const CoreValues: React.FC = () => {
   const values = [
     {
       id: '01',
-      title: 'PERSONALIZED INSIGHT',
-      desc: 'We believe every individual deserves nutrition guidance tailored to their unique biology, not generic advice.',
+      title: 'ADVANCED REASONING',
+      desc: 'DeepSeek R1 8B analyzes micronutrients with deep clinical reasoning. Every recommendation comes with transparent multi-step justification.',
       citation: ''
     },
     {
       id: '02',
-      title: 'EVIDENCE-BASED',
-      desc: 'Our AI models are trained on gold-standard clinical datasets like NHANES to ensure every symptom mapping is backed by nutritional science.',
+      title: 'GROUNDED IN EVIDENCE',
+      desc: 'RAG-powered knowledge retrieval ensures every diagnosis is anchored in medical context. Our vector database stores only evidence-based micronutrient science.',
       citation: ''
     },
     {
       id: '03',
-      title: 'RADICAL ACCESS',
-      desc: 'By removing the barriers of cost and fear associated with traditional testing, we make nutritional clarity available to everyone, everywhere.',
+      title: 'SAFETY FIRST',
+      desc: 'Automatic drug-nutrient interaction detection, toxic dose prevention, and medication depletion screening protect you before recommendations.',
       citation: ''
     },
     {

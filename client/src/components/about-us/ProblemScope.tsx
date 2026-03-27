@@ -17,10 +17,10 @@ const ProblemScope: React.FC = () => {
     <section className="py-24 px-6 bg-white border-b border-gray-100">
       <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
         <div>
-          <h2 className="text-4xl font-black tracking-tighter text-gray-900 mb-6 uppercase">The Invisible Crisis</h2>
+          <h2 className="text-4xl font-black tracking-tighter text-gray-900 mb-6 uppercase">The Deficiency Cascade</h2>
           <p className="text-lg text-gray-600 leading-relaxed mb-6 font-medium">
-            Micronutrient deficiencies are systemic disruptions that manifest through a hierarchical cascade of physiological signs. 
-            By the time clinical symptoms appear, the body has often been struggling for months.
+            Micronutrient deficiencies progress silently through stages—from subclinical depletion to metabolic dysfunction to clinical symptoms. 
+            Most people don't realize the damage until years of cellular stress manifest as fatigue, brain fog, or chronic illness.
           </p>
           <div className="h-2 w-24 bg-[#f7a221]" />
         </div>

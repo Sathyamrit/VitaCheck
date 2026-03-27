@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStreamingDiagnosis } from '../hooks/useStreamingDiagnosis';
 
 const categories = [
@@ -13,6 +14,7 @@ const categories = [
 
 export function DiagnosticDashboard() {
   // --- State ---
+  const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [responses, setResponses] = useState<Record<string, number>>({});
   const [userDescription, setUserDescription] = useState("");
@@ -59,6 +61,19 @@ export function DiagnosticDashboard() {
     setResponses({});
     setUserDescription("");
     resetDiagnosis();
+  };
+
+  const handleGenerateRecipe = () => {
+    // Pass diagnosis data to MealPlan via navigation state
+    navigate('/meal-plan', {
+      state: {
+        diagnosis,
+        extracted,
+        symptoms: extracted?.symptoms || [],
+        medications: extracted?.medications || [],
+        allergies: extracted?.allergies || [],
+      },
+    });
   };
 
   // --- Sub-Components for UI cleanliness ---
@@ -276,12 +291,20 @@ export function DiagnosticDashboard() {
 
             {/* Final Actions */}
             {status === 'completed' && (
-              <button 
-                onClick={handleReset}
-                className="w-full bg-gray-900 text-white py-5 rounded-[1.5rem] font-black uppercase tracking-[0.3em] hover:bg-[#f7a221] transition-all shadow-xl shadow-orange-200"
-              >
-                Start New Session
-              </button>
+              <div className="space-y-3">
+                <button 
+                  onClick={handleGenerateRecipe}
+                  className="w-full bg-[#f7a221] text-gray-900 py-5 rounded-[1.5rem] font-black uppercase tracking-[0.3em] hover:bg-orange-500 transition-all shadow-xl shadow-orange-200"
+                >
+                  Generate Personalized Recipes
+                </button>
+                <button 
+                  onClick={handleReset}
+                  className="w-full bg-gray-900 text-white py-5 rounded-[1.5rem] font-black uppercase tracking-[0.3em] hover:bg-gray-700 transition-all shadow-xl shadow-orange-200"
+                >
+                  Start New Session
+                </button>
+              </div>
             )}
           </div>
         )}

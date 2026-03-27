@@ -16,9 +16,9 @@ const Values: React.FC = () => {
           {/* <p className="text-gray-500 text-sm">Our AI models are trained on clinical datasets like NHANES to ensure accuracy in symptom mapping.</p> */}
         </div>
         <div className="text-center">
-          <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl">🥗</div>
-          <h3 className="font-bold text-xl mb-3">Holistic Closure</h3>
-          <p className="text-gray-500 text-sm">We don't just identify gaps; we provide customized recipes optimized for bioavailability.</p>
+          <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl">⚡</div>
+          <h3 className="font-bold text-xl mb-3">Advanced Safety</h3>
+          <p className="text-gray-500 text-sm">Built-in drug interaction checking, toxic dose prevention, and medication depletion screening for your protection.</p>
         </div>
       </div>
     </section>
