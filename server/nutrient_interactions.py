@@ -3,6 +3,8 @@ Micronutrient-to-micronutrient interaction detection
 Alerts when nutrient combinations may cause absorption issues
 """
 
+from typing import List, Dict
+
 NUTRIENT_INTERACTIONS = {
     # Competition for absorption
     ("Calcium", "Iron"): {

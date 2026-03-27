@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useStreamingDiagnosis } from '../hooks/useStreamingDiagnosis';
 
 const categories = [
-  { id: 'oral', name: 'Oral & Dental', symptoms: ['Canker sores', 'Bleeding gums', 'Dry mouth', 'Lip cracks'] },
+  { id: 'oral', name: 'Oral & Dental', symptoms: ['Canker sores', 'Bleeding gums', 'Dry mouth','Angular Cheilitis (cracked corners)', 'Lip cracks'] },
   { id: 'skin', name: 'Dermatological', symptoms: ['Acne', 'Itchy skin', 'Night sweats', 'Dry skin', 'Easy bruising'] },
   { id: 'appendages', name: 'Hands, Nails & Hair', symptoms: ['Brittle nails', 'White spots on nails', 'Thinning hair', 'Dry hair'] },
   { id: 'energy', name: 'Energy & Activity', symptoms: ['Persistent fatigue', 'Cold hands/feet', 'Pica (craving ice/dirt)', 'Morning lethargy'] },

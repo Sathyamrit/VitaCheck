@@ -200,106 +200,13 @@ async def retrieve_rag_context(symptoms: list[str]) -> str:
     
     return context.strip()
 
-@app.post("/diagnosis/personalized")
-async def personalized_diagnosis(request: DiagnoseRequest):
-    """
-    Diagnosis with full personalization:
-    1. RAG context retrieval
-    2. User profile consideration
-    3. Medication interaction detection
-    4. Nutrient interaction alerts
-    """
-    user_id = request.get("user_id", "anonymous")
-    
-    # Get RAG results
-    rag_result = rag_pipeline.process_diagnosis_request(request.text)
-    
-    # Check for medication interactions
-    medications = request.get("medications", [])
-    drug_interactions = drug_checker.get_recommendations(medications) if medications else {}
-    
-    # Check for nutrient interactions
-    recommended_nutrients = [r.get("nutrient", "") for r in rag_result['raw_results']]
-    nutrient_interactions = interaction_checker.check_stack(recommended_nutrients)
-    
-    # Personalize based on user history
-    base_diagnosis = {
-        "symptoms": rag_result['extracted_symptoms'],
-        "deficiencies": [r['micronutrient'] for r in rag_result['raw_results'][:3]],
-        "recommendations": [],
-    }
-    
-    personalized_result = personalization.personalize_diagnosis(user_id, base_diagnosis)
-    
-    # Stream comprehensive response
-    async def generate_personalized():
-        yield f"data: {json.dumps({'type': 'analysis', 'rag': rag_result['raw_results'][:3]})}\n\n"
-        yield f"data: {json.dumps({'type': 'drug_interactions', 'data': drug_interactions})}\n\n"
-        yield f"data: {json.dumps({'type': 'nutrient_interactions', 'data': nutrient_interactions})}\n\n"
-        yield f"data: {json.dumps({'type': 'personalized', 'data': personalized_result})}\n\n"
-    
-    return StreamingResponse(generate_personalized(), media_type="text/event-stream")
-
-
-# New endpoint: Check drug interactions
-@app.post("/interactions/drugs")
-async def check_drug_interactions(request: dict):
-    """Check medications for nutrient depletions"""
-    medications = request.get("medications", [])
-    result = drug_checker.get_recommendations(medications)
-    return result
-
-
-# New endpoint: Check nutrient interactions
-@app.post("/interactions/nutrients")
-async def check_nutrient_interactions(request: dict):
-    """Check supplement stack for interactions"""
-    nutrients = request.get("nutrients", [])
-    result = interaction_checker.check_stack(nutrients)
-    return result
-
-
-# New endpoint: Get supplement timing
-@app.get("/supplements/timing")
-async def get_supplement_timing(nutrients: str = ""):
-    """Get optimal timing for supplement intake"""
-    nutrient_list = [n.strip() for n in nutrients.split(",") if n.strip()]
-    result = interaction_checker.get_optimal_timing(nutrient_list)
-    return result
-
-
-# New endpoint: User profile & insights
-@app.get("/user/{user_id}/profile")
-async def get_user_profile(user_id: str):
-    """Get user profile and insights"""
-    user = personalization.get_or_create_user(user_id)
-    return {
-        "user_id": user_id,
-        "demographics": user.data.get("demographics"),
-        "insights": user.data.get("insights"),
-        "recurrent_concerns": user.data.get("insights", {}).get("recurrent_deficiencies")
-    }
-
-
-# New endpoint: Record user feedback
-@app.post("/user/{user_id}/feedback")
-async def record_user_feedback(user_id: str, request: dict):
-    """Record feedback on recommendation"""
-    user = personalization.get_or_create_user(user_id)
-    user.record_feedback(
-        recommendation=request.get("recommendation"),
-        accepted=request.get("accepted", False),
-        rating=request.get("rating", 3)
-    )
-    return {"status": "feedback_recorded"}
-
 
 # ============================================================================
 # STAGE 2: DEEP REASONING WITH OLLAMA (DeepSeek R1)
 # ============================================================================
 
 async def deepseek_reasoning_stream(
-    extracted: ExtractedSymptoms,
+    extracted: ExtractedSymptoms, #groq output
     rag_context: str
 ) -> AsyncGenerator[str, None]:
     """
@@ -441,6 +348,91 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    
+    # ====== PHASE 4: ADVANCED ENDPOINTS ======
+    
+    @app.post("/diagnosis/personalized")
+    async def personalized_diagnosis(request: ChatRequest):
+        """
+        Diagnosis with full personalization:
+        1. RAG context retrieval
+        2. User profile consideration
+        3. Medication interaction detection
+        4. Nutrient interaction alerts
+        """
+        user_id = request.user_id or "anonymous"
+        
+        # Get RAG results
+        rag_result = rag_pipeline.process_diagnosis_request(request.text)
+        
+        # Check for medication interactions
+        medications = request.context.get("medications", []) if request.context else []
+        drug_interactions = drug_checker.get_recommendations(medications) if medications else {}
+        
+        # Check for nutrient interactions
+        recommended_nutrients = [r.get("micronutrient", "") for r in rag_result.get('raw_results', [])]
+        nutrient_interactions = interaction_checker.check_stack(recommended_nutrients)
+        
+        # Personalize based on user history
+        base_diagnosis = {
+            "symptoms": rag_result.get('extracted_symptoms', []),
+            "deficiencies": [r.get('micronutrient') for r in rag_result.get('raw_results', [])[:3]],
+            "recommendations": [],
+        }
+        
+        personalized_result = personalization.personalize_diagnosis(user_id, base_diagnosis)
+        
+        # Stream comprehensive response
+        async def generate_personalized():
+            yield f"data: {json.dumps({'type': 'analysis', 'rag': rag_result.get('raw_results', [])[:3]})}\n\n"
+            yield f"data: {json.dumps({'type': 'drug_interactions', 'data': drug_interactions})}\n\n"
+            yield f"data: {json.dumps({'type': 'nutrient_interactions', 'data': nutrient_interactions})}\n\n"
+            yield f"data: {json.dumps({'type': 'personalized', 'data': personalized_result})}\n\n"
+        
+        return StreamingResponse(generate_personalized(), media_type="text/event-stream")
+
+    @app.post("/interactions/drugs")
+    async def check_drug_interactions(request: dict):
+        """Check medications for nutrient depletions"""
+        medications = request.get("medications", [])
+        result = drug_checker.get_recommendations(medications)
+        return result
+
+    @app.post("/interactions/nutrients")
+    async def check_nutrient_interactions(request: dict):
+        """Check supplement stack for interactions"""
+        nutrients = request.get("nutrients", [])
+        result = interaction_checker.check_stack(nutrients)
+        return result
+
+    @app.get("/supplements/timing")
+    async def get_supplement_timing(nutrients: str = ""):
+        """Get optimal timing for supplement intake"""
+        nutrient_list = [n.strip() for n in nutrients.split(",") if n.strip()]
+        result = interaction_checker.get_optimal_timing(nutrient_list)
+        return result
+
+    @app.get("/user/{user_id}/profile")
+    async def get_user_profile(user_id: str):
+        """Get user profile and insights"""
+        user = personalization.get_or_create_user(user_id)
+        return {
+            "user_id": user_id,
+            "demographics": user.data.get("demographics", {}),
+            "insights": user.data.get("insights", {}),
+            "recurrent_concerns": user.data.get("insights", {}).get("recurrent_deficiencies", {})
+        }
+
+    @app.post("/user/{user_id}/feedback")
+    async def record_user_feedback(user_id: str, request_body: dict):
+        """Record feedback on recommendation"""
+        user = personalization.get_or_create_user(user_id)
+        user.record_feedback(
+            recommendation=request_body.get("recommendation"),
+            accepted=request_body.get("accepted", False),
+            rating=request_body.get("rating", 3)
+        )
+        return {"status": "feedback_recorded"}
     
     # ====== NEW STREAMING ENDPOINT (Phase 1) ======
     @app.post("/chat/stream")

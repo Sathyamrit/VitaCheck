@@ -1,0 +1,83 @@
+{
+  "user_id": "test_user_phase4",
+  "created_at": "2026-03-27T21:36:47.281179",
+  "demographics": {
+    "age": 35,
+    "gender": "female",
+    "dietary_preferences": [],
+    "allergies": [],
+    "medications": [
+      "metformin"
+    ]
+  },
+  "health_history": {
+    "deficiencies_diagnosed": [],
+    "symptoms_reported": [],
+    "conditions": []
+  },
+  "preferences": {
+    "supplement_form": "tablet",
+    "preferred_nutrients": [],
+    "avoid_nutrients": [],
+    "budget_tier": "standard"
+  },
+  "tracking": {
+    "diagnosis_history": [
+      {
+        "timestamp": "2026-03-27T21:36:47.283943",
+        "symptoms": [
+          "fatigue",
+          "brain fog"
+        ],
+        "identified_deficiencies": [
+          "B12",
+          "Iron"
+        ],
+        "recommendations": [
+          "B12 supplement",
+          "Iron supplement"
+        ]
+      },
+      {
+        "timestamp": "2026-03-27T22:16:24.649462",
+        "symptoms": [
+          "fatigue",
+          "brain fog"
+        ],
+        "identified_deficiencies": [
+          "B12",
+          "Iron"
+        ],
+        "recommendations": [
+          "B12 supplement",
+          "Iron supplement"
+        ]
+      }
+    ],
+    "recommendations_accepted": [
+      "B12 supplement",
+      "Iron supplement",
+      "B12 supplement",
+      "Iron supplement"
+    ],
+    "recommendations_rejected": [],
+    "feedback_scores": [
+      5,
+      4,
+      5,
+      4
+    ]
+  },
+  "insights": {
+    "recurrent_deficiencies": {
+      "B12": 2,
+      "Iron": 2
+    },
+    "common_symptoms": {
+      "fatigue": 2,
+      "brain fog": 2
+    },
+    "recommendation_acceptance_rate": 1.0,
+    "dietary_pattern": null
+  }
+}
