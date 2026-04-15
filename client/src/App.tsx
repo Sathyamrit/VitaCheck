@@ -33,6 +33,7 @@ function App() {
           <Route path="/questionnaire" element={<DiagnosticDashboard />} />
           <Route path="/diagnostic" element={<Diagnostic />} />
           <Route path="/dashboard/:taskId" element={<Dashboard />} />
+          <Route path="/meal-plan" element={<MealPlan />} />
           <Route path="/meal-plan/:taskId" element={<MealPlan />} />
           <Route path="/diagnostic-dashboard" element={<DiagnosticDashboard />} />
           <Route path="/rag-dashboard" element={<RAGDashboard />} />

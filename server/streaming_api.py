@@ -43,6 +43,7 @@ class RecipeGenerationRequest(BaseModel):
     """Request for recipe generation from diagnosis."""
     diagnosis: str
     nutrients: list[str] = []
+    food_types: list[str] = []
     preferences: dict = {}
 
 
@@ -67,7 +68,38 @@ if not GROQ_API_KEY:
     print("⚠️  WARNING: GROQ_API_KEY not set. Set it in .env file or environment.")
 
 GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
+# Same family as symptom extraction; override via env if needed.
+GROQ_RECIPE_MODEL = os.getenv("GROQ_RECIPE_MODEL", "llama-3.3-70b-versatile")
+GROQ_RECIPE_FALLBACK_MODELS = [
+    GROQ_RECIPE_MODEL,
+    "llama-3.1-8b-instant",
+]
 OLLAMA_GENERATE = f"{OLLAMA_BASE_URL}/api/generate"
+
+
+def _parse_recipes_json_from_llm(content: str) -> dict:
+    """Best-effort JSON parse for Groq chat completions (plain JSON or fenced)."""
+    text = (content or "").strip()
+    if not text:
+        return {}
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+    if "```json" in text:
+        try:
+            inner = text.split("```json", 1)[1].split("```", 1)[0]
+            return json.loads(inner.strip())
+        except (json.JSONDecodeError, IndexError):
+            pass
+    if "{" in text:
+        start, end = text.find("{"), text.rfind("}") + 1
+        if end > start:
+            try:
+                return json.loads(text[start:end])
+            except json.JSONDecodeError:
+                pass
+    return {}
 
 
 # ============================================================================
@@ -223,7 +255,7 @@ async def deepseek_reasoning_stream(
     Latency target: <4.5s total (includes prefill + decoding)
     """
     
-    # Build prompt that encourages thinking blocks
+    # prompt that encourages thinking blocks
     system_prompt = """You are an expert micronutrient diagnostic assistant.
 Your task is to analyze symptoms and identify likely micronutrient deficiencies.
 
@@ -450,110 +482,117 @@ def create_app() -> FastAPI:
         Takes the diagnosis output and uses Groq to generate 3 recipes optimized for
         the identified nutrient deficiencies.
         """
-        try:
-            # Build nutrition-focused prompt
-            nutrients_str = ", ".join(request.nutrients) if request.nutrients else "essential micronutrients"
-            diet_type = request.preferences.get("dietType", "Standard")
-            allergies = request.preferences.get("allergies", "None")
-            
-            prompt = f"""You are a culinary nutritionist. Based on the following medical diagnosis, generate exactly 3 personalized recipes.
+        if not GROQ_API_KEY:
+            raise HTTPException(
+                status_code=503,
+                detail="GROQ_API_KEY is not set. Add it to server/.env to enable recipe generation via Groq.",
+            )
 
-MEDICAL DIAGNOSIS:
-{request.diagnosis[:800]}
+        nutrients_str = ", ".join(request.nutrients) if request.nutrients else "essential micronutrients"
+        food_types_str = ", ".join(request.food_types) if request.food_types else "whole foods aligned with nutrient goals"
+        diet_type = request.preferences.get("dietType", "Standard")
+        allergies = request.preferences.get("allergies", "None")
 
-TARGET NUTRIENTS TO INCLUDE:
+        prompt = f"""You are a culinary nutritionist. Based on the following clinical context, generate exactly 3 distinct recipes.
+
+CLINICAL / DIAGNOSIS SUMMARY:
+{request.diagnosis[:2000]}
+
+NUTRITIONAL TARGETS (prioritize these in ingredients):
 {nutrients_str}
 
-DIETARY PREFERENCES:
-- Diet Type: {diet_type}
-- Allergies/Restrictions: {allergies}
-- Preferred Cooking Time: {request.preferences.get('cookingTime', '30-45 minutes')}
+FOOD TYPES TO EMPHASIZE:
+{food_types_str}
 
-Generate recipes in this EXACT JSON format only (no markdown, no extra text):
+DIETARY CONSTRAINTS:
+- Diet style: {diet_type}
+- Allergies / avoid: {allergies}
+- Cooking time preference: {request.preferences.get('cookingTime', '30-45 minutes')}
+
+Respond with a single JSON object only (no markdown) with this exact structure:
 {{
   "recipes": [
     {{
-      "name": "Recipe Name",
-      "ingredients": ["ingredient 1", "ingredient 2", "ingredient 3"],
-      "instructions": ["step 1", "step 2", "step 3"],
-      "prep_time": "20 mins",
-      "cooking_time": "25 mins",
+      "name": "string",
+      "ingredients": ["string", "..."],
+      "instructions": ["string", "..."],
+      "prep_time": "string",
+      "cooking_time": "string",
       "servings": 2,
-      "nutrients_provided": ["nutrient 1", "nutrient 2"],
-      "rationale": "Why this recipe targets the identified deficiencies"
-    }},
-    {{...}},
-    {{...}}
+      "nutrients_provided": ["string", "..."],
+      "rationale": "string"
+    }}
   ]
-}}"""
-            
-            # Call Groq API for recipe generation
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(
-                    GROQ_ENDPOINT,
-                    headers={
-                        "Authorization": f"Bearer {GROQ_API_KEY}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": "mixtral-8x7b-32768",
+}}
+The "recipes" array must contain exactly 3 items."""
+
+        use_json_mode = os.getenv("GROQ_RECIPE_JSON_MODE", "1").lower() in ("1", "true", "yes")
+        attempted_errors: list[str] = []
+
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                for model_name in list(dict.fromkeys(GROQ_RECIPE_FALLBACK_MODELS)):
+                    body = {
+                        "model": model_name,
                         "messages": [
                             {
                                 "role": "system",
-                                "content": "You are an expert culinary nutritionist. Generate only valid JSON, no markdown or extra text."
+                                "content": "You output only valid JSON objects. No markdown fences, no commentary.",
                             },
-                            {
-                                "role": "user",
-                                "content": prompt
-                            }
+                            {"role": "user", "content": prompt},
                         ],
-                        "temperature": 0.7,
-                        "max_tokens": 2000,
+                        "temperature": 0.6,
+                        "max_tokens": 4096,
                     }
-                )
-                
-                if response.status_code != 200:
-                    return {
-                        "error": f"Groq API error: {response.status_code}",
-                        "recipes": []
-                    }
-                
-                result = response.json()
-                content = result.get("choices", [{}])[0].get("message", {}).get("content", "{}")
-                
-                # Parse JSON from response
-                try:
-                    recipes_data = json.loads(content)
-                    return recipes_data
-                except json.JSONDecodeError:
-                    # Try to extract JSON from markdown if present
-                    if "```json" in content:
-                        json_str = content.split("```json")[1].split("```")[0]
-                        recipes_data = json.loads(json_str)
-                        return recipes_data
-                    elif "{" in content:
-                        # Find first { and last }
-                        start = content.find("{")
-                        end = content.rfind("}") + 1
-                        recipes_data = json.loads(content[start:end])
-                        return recipes_data
-                    else:
-                        return {
-                            "error": "Could not parse recipe response",
-                            "recipes": [],
-                            "raw_response": content[:500]
-                        }
-                        
+                    if use_json_mode:
+                        body["response_format"] = {"type": "json_object"}
+
+                    response = await client.post(
+                        GROQ_ENDPOINT,
+                        headers={
+                            "Authorization": f"Bearer {GROQ_API_KEY}",
+                            "Content-Type": "application/json",
+                        },
+                        json=body,
+                    )
+
+                    # Retry without JSON mode if Groq rejects this parameter.
+                    if response.status_code == 400 and use_json_mode:
+                        body.pop("response_format", None)
+                        response = await client.post(
+                            GROQ_ENDPOINT,
+                            headers={
+                                "Authorization": f"Bearer {GROQ_API_KEY}",
+                                "Content-Type": "application/json",
+                            },
+                            json=body,
+                        )
+
+                    if response.status_code != 200:
+                        err_body = response.text[:500]
+                        attempted_errors.append(f"{model_name}: {response.status_code} {err_body}")
+                        continue
+
+                    result = response.json()
+                    content = result.get("choices", [{}])[0].get("message", {}).get("content", "") or ""
+                    recipes_data = _parse_recipes_json_from_llm(content)
+                    recipes = recipes_data.get("recipes")
+                    if isinstance(recipes, list) and len(recipes) > 0:
+                        return {"recipes": recipes[:5], "model_used": model_name}
+
+                    attempted_errors.append(f"{model_name}: response parsed but no recipes. Preview={content[:250]}")
+
+            raise HTTPException(
+                status_code=502,
+                detail=f"Groq recipe generation failed across models. Attempts: {' | '.join(attempted_errors[:4])}",
+            )
+
+        except HTTPException:
+            raise
         except httpx.TimeoutException:
-            return {
-                "error": "Recipe generation timed out",
-                "recipes": []
-            }
+            raise HTTPException(status_code=504, detail="Recipe generation timed out. Try again.")
         except Exception as e:
-            return {
-                "error": f"Recipe generation failed: {str(e)}",
-                "recipes": []
-            }
+            raise HTTPException(status_code=500, detail=f"Recipe generation failed: {str(e)}")
     
     # ====== NEW STREAMING ENDPOINT (Phase 1) ======
     @app.post("/chat/stream")

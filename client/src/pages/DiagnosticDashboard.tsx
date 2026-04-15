@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStreamingDiagnosis } from '../hooks/useStreamingDiagnosis';
+import { extractNutritionTargetsFromDiagnosis } from '../utils/diagnosisNutrition';
 
 const categories = [
   { id: 'oral', name: 'Oral & Dental', symptoms: ['Canker sores', 'Bleeding gums', 'Dry mouth','Angular Cheilitis (cracked corners)', 'Lip cracks'] },
@@ -64,6 +65,8 @@ export function DiagnosticDashboard() {
   };
 
   const handleGenerateRecipe = () => {
+    const targets = extractNutritionTargetsFromDiagnosis(diagnosis || '');
+
     // Pass diagnosis data to MealPlan via navigation state
     navigate('/meal-plan', {
       state: {
@@ -72,6 +75,8 @@ export function DiagnosticDashboard() {
         symptoms: extracted?.symptoms || [],
         medications: extracted?.medications || [],
         allergies: extracted?.allergies || [],
+        nutrients: targets.nutrients,
+        foodTypes: targets.foodTypes,
       },
     });
   };
@@ -296,7 +301,7 @@ export function DiagnosticDashboard() {
                   onClick={handleGenerateRecipe}
                   className="w-full bg-[#f7a221] text-gray-900 py-5 rounded-[1.5rem] font-black uppercase tracking-[0.3em] hover:bg-orange-500 transition-all shadow-xl shadow-orange-200"
                 >
-                  Generate Personalized Recipes
+                  Generate Recipes From AI Diagnosis
                 </button>
                 <button 
                   onClick={handleReset}

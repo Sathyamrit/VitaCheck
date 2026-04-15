@@ -58,9 +58,14 @@
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.files) {
-        setFile(e.target.files[0]);
-        setMessage(`File selected: ${e.target.files[0].name}`);
+      if (e.target.files && e.target.files.length > 0) {
+        const selectedFile = e.target.files[0];
+        setFile(selectedFile);
+        setMessage(`File selected: ${selectedFile.name}`);
+        setMessageType('info');
+      } else {
+        setFile(null);
+        setMessage('No file selected');
         setMessageType('info');
       }
     };

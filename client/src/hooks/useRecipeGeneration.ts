@@ -26,10 +26,12 @@ export function useRecipeGeneration() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
 
   const generateRecipes = useCallback(async (
     diagnosisText: string,
     nutrients: string[] = [],
+    foodTypes: string[] = [],
     preferences: {
       dietType?: string;
       allergies?: string;
@@ -56,6 +58,9 @@ DIAGNOSIS: ${diagnosisText.substring(0, 500)}
 TARGET NUTRIENTS TO INCLUDE:
 ${targetNutrients.join(', ') || 'balanced micronutrients'}
 
+PRIORITIZED FOOD TYPES:
+${foodTypes.join(', ') || 'whole foods rich in the target nutrients'}
+
 DIETARY PREFERENCES:
 - Diet Type: ${preferences.dietType || 'Standard'}
 - Allergies/Restrictions: ${preferences.allergies || 'None'}
@@ -79,8 +84,9 @@ For each recipe, provide JSON format:
 
 IMPORTANT: Return ONLY valid JSON, no markdown blocks or additional text.`;
 
-      // Call Groq API directly (or use backend endpoint if available)
-      const response = await fetch('http://localhost:8000/generate-recipes', {
+      // Call backend directly by default; can be overridden with VITE_API_BASE_URL.
+      const endpoint = `${apiBaseUrl}/generate-recipes`;
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -88,22 +94,44 @@ IMPORTANT: Return ONLY valid JSON, no markdown blocks or additional text.`;
         body: JSON.stringify({
           diagnosis: diagnosisText,
           nutrients: targetNutrients,
+          food_types: foodTypes,
           preferences,
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`Recipe generation failed: ${response.statusText}`);
+      const raw = await response.text();
+      let data: { recipes?: unknown[]; error?: unknown; detail?: string | unknown } = {};
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        data = {};
       }
 
-      const data = await response.json();
-      
-      if (data.recipes && Array.isArray(data.recipes)) {
+      if (!response.ok) {
+        const detail = data.detail;
+        const detailStr =
+          typeof detail === 'string'
+            ? detail
+            : detail != null
+              ? JSON.stringify(detail)
+              : '';
+        throw new Error(
+          `Recipe generation failed (${response.status} ${response.statusText}). ${
+            detailStr || raw || 'No error body returned by backend.'
+          }`
+        );
+      }
+
+      if (data.error) {
+        throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error));
+      }
+
+      if (data.recipes && Array.isArray(data.recipes) && data.recipes.length > 0) {
         setRecipes(data.recipes);
         return data.recipes;
-      } else {
-        throw new Error('Invalid recipe format received');
       }
+
+      throw new Error('No recipes returned. Ensure GROQ_API_KEY is set on the server and Groq is reachable.');
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to generate recipes';
       setError(errorMsg);
@@ -112,7 +140,7 @@ IMPORTANT: Return ONLY valid JSON, no markdown blocks or additional text.`;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [apiBaseUrl]);
 
   return {
     recipes,

@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useRecipeGeneration } from '../hooks/useRecipeGeneration';
+import { extractNutritionTargetsFromDiagnosis } from '../utils/diagnosisNutrition';
 
 // 1. Interfaces for Type Safety
 interface Recipe {
   name: string;
-  rationale: string; // Unified from "reason" and "rationale"
-  prep_time: string; // Unified from "time" and "prep_time"
+  rationale: string;
+  prep_time: string;
+  cooking_time?: string;
+  ingredients?: string[];
+  instructions?: string[];
+  nutrients_provided?: string[];
+  servings?: number;
 }
 
 interface DiagnosisData {
   diagnosis: string;
+  nutrients?: string[];
+  foodTypes?: string[];
 }
 
 const MealPlan: React.FC = () => {
@@ -25,6 +33,7 @@ const MealPlan: React.FC = () => {
   const [recipesData, setRecipesData] = useState<Recipe[] | null>(null);
   const [loadingRecipes, setLoadingRecipes] = useState(false);
   const [recipeErrorMsg, setRecipeErrorMsg] = useState<string | null>(null);
+  const [contextChecked, setContextChecked] = useState(false);
 
   const [preferences, setPreferences] = useState({
     dietType: 'Standard',
@@ -44,7 +53,10 @@ const MealPlan: React.FC = () => {
         symptoms: location.state.symptoms,
         medications: location.state.medications,
         allergies: location.state.allergies,
+        nutrients: location.state.nutrients || [],
+        foodTypes: location.state.foodTypes || [],
       });
+      setContextChecked(true);
       return;
     }
 
@@ -59,10 +71,17 @@ const MealPlan: React.FC = () => {
         }
       } catch (error) {
         console.error("Failed to fetch diagnosis:", error);
+      } finally {
+        setContextChecked(true);
       }
     };
 
-    if (taskId) fetchDiagnosis();
+    if (taskId) {
+      void fetchDiagnosis();
+      return;
+    }
+
+    setContextChecked(true);
   }, [taskId, location.state]);
 
   // 4. Effect: Poll for Recipe Generation Status (for legacy API compatibility)
@@ -101,21 +120,47 @@ const MealPlan: React.FC = () => {
     setRecipeErrorMsg(null);
 
     try {
+      const parsedTargets = extractNutritionTargetsFromDiagnosis(diagnosisData.diagnosis);
+      const nutrients = diagnosisData.nutrients?.length
+        ? diagnosisData.nutrients
+        : parsedTargets.nutrients;
+      const foodTypes = diagnosisData.foodTypes?.length
+        ? diagnosisData.foodTypes
+        : parsedTargets.foodTypes;
+
       const generatedRecipes = await generateRecipes(
         diagnosisData.diagnosis,
-        diagnosisData.extracted?.symptoms || [],
+        nutrients,
+        foodTypes,
         preferences
       );
       setRecipesData(generatedRecipes);
     } catch (err) {
       setRecipeErrorMsg(err instanceof Error ? err.message : 'Failed to generate recipes');
+    } finally {
       setLoadingRecipes(false);
     }
   };
 
-  // 6. Early Return for Loading State
-  if (!diagnosisData) {
-    return <div className="p-20 text-center font-black animate-pulse text-gray-400">Loading Clinical Data...</div>;
+  if (!contextChecked) {
+    return <div className="p-20 text-center font-black animate-pulse text-gray-400">Loading clinical data...</div>;
+  }
+
+  if (!diagnosisData?.diagnosis) {
+    return (
+      <div className="max-w-xl mx-auto py-20 px-6 text-center space-y-6">
+        <p className="text-gray-600 font-bold">
+          No diagnosis data found. Run the AI questionnaire first, then use &quot;Generate Recipes From AI Diagnosis&quot; to open this page with nutritional targets.
+        </p>
+        <button
+          type="button"
+          onClick={() => navigate('/questionnaire')}
+          className="bg-[#f7a221] text-gray-900 px-8 py-4 rounded-full font-black uppercase text-xs tracking-widest"
+        >
+          Go to questionnaire
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -134,6 +179,16 @@ const MealPlan: React.FC = () => {
           <p className="text-gray-500 mb-10 text-sm font-bold uppercase tracking-widest">
             Targeting: <span className="text-black">{diagnosisData.diagnosis.substring(0, 100)}...</span>
           </p>
+
+          <div className="mb-6 p-4 rounded-2xl border border-[#f7a221]/20 bg-[#f7a221]/5">
+            <p className="text-[10px] font-black uppercase tracking-widest text-[#f7a221] mb-2">DeepSeek RAG Targets</p>
+            <p className="text-xs font-bold text-gray-600">
+              Nutrients: {(diagnosisData.nutrients || []).join(', ') || 'Auto-detected from diagnosis'}
+            </p>
+            <p className="text-xs font-bold text-gray-600 mt-1">
+              Food Types: {(diagnosisData.foodTypes || []).join(', ') || 'Auto-detected from diagnosis'}
+            </p>
+          </div>
 
           <div className="space-y-8">
             <section>
@@ -206,6 +261,28 @@ const MealPlan: React.FC = () => {
                 <div className="absolute top-0 left-0 w-2 h-full bg-[#f7a221]" />
                 <h3 className="text-3xl font-black uppercase mb-4 leading-tight">{r.name}</h3>
                 <p className="text-gray-500 italic leading-relaxed mb-6">"{r.rationale}"</p>
+
+                {r.ingredients && r.ingredients.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-[10px] font-black uppercase text-gray-500 mb-2">Ingredients</p>
+                    <ul className="text-sm text-gray-700 list-disc list-inside space-y-1">
+                      {r.ingredients.slice(0, 12).map((ing, j) => (
+                        <li key={j}>{ing}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {r.instructions && r.instructions.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-[10px] font-black uppercase text-gray-500 mb-2">Steps</p>
+                    <ol className="text-sm text-gray-700 list-decimal list-inside space-y-1">
+                      {r.instructions.slice(0, 10).map((step, j) => (
+                        <li key={j}>{step}</li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
                 
                 {r.nutrients_provided && r.nutrients_provided.length > 0 && (
                   <div className="mb-6">
@@ -220,9 +297,11 @@ const MealPlan: React.FC = () => {
                   </div>
                 )}
                 
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center flex-wrap gap-2">
                   <span className="text-[10px] font-black uppercase bg-gray-100 px-3 py-1 rounded-full text-gray-500">
                     Prep: {r.prep_time}
+                    {r.cooking_time ? ` · Cook: ${r.cooking_time}` : ''}
+                    {r.servings != null ? ` · Serves ${r.servings}` : ''}
                   </span>
                   <button className="text-[#f7a221] font-black uppercase text-xs hover:underline">
                     View Details →
