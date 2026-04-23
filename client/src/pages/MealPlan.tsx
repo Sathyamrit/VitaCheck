@@ -303,7 +303,9 @@ const MealPlan: React.FC = () => {
                     {r.cooking_time ? ` · Cook: ${r.cooking_time}` : ''}
                     {r.servings != null ? ` · Serves ${r.servings}` : ''}
                   </span>
-                  <button className="text-[#f7a221] font-black uppercase text-xs hover:underline">
+                  <button className="text-[#f7a221] font-black uppercase text-xs hover:underline"
+                  onClick={() => navigate(`/meal-plan/recipe/${i}`, { state: { recipe: r } })}
+                  >
                     View Details →
                   </button>
                 </div>

@@ -52,6 +52,9 @@
 
 ## How to Use
 
+#install requirements in server
+pip install -r requirements.txt
+
 ### 1. Start All Services
 
 ```bash

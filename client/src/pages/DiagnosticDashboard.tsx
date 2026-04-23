@@ -81,6 +81,27 @@ export function DiagnosticDashboard() {
     });
   };
 
+  const handleOpenDashboard = () => {
+  // Pre-calculate nutritional targets for the dashboard to use immediately
+  const targets = extractNutritionTargetsFromDiagnosis(diagnosis || '');
+
+  navigate('/dashboard', {
+    state: {
+      diagnosis,
+      extracted,
+      nutrients: targets.nutrients,
+      foodTypes: targets.foodTypes,
+      metrics: {
+        ttft,
+        totalTime,
+        symptomCount: activeSymptoms.length
+      },
+      // Pass the original raw responses in case the dashboard needs to show the severity chart
+      rawResponses: responses 
+    },
+  });
+};
+
   // --- Sub-Components for UI cleanliness ---
   const ProgressHeader = () => (
     <div className="flex gap-2 mb-12">
@@ -298,17 +319,25 @@ export function DiagnosticDashboard() {
             {status === 'completed' && (
               <div className="space-y-3">
                 <button 
+                  onClick={handleOpenDashboard}
+                  className="w-full bg-[#f7a221] text-gray-900 py-5 rounded-[1.5rem] font-black uppercase tracking-[0.3em] hover:bg-orange-500 transition-all shadow-xl shadow-orange-200"
+                >
+                  Open Dashboard
+                </button>
+              <div className="space-y-3">
+                <button 
                   onClick={handleGenerateRecipe}
                   className="w-full bg-[#f7a221] text-gray-900 py-5 rounded-[1.5rem] font-black uppercase tracking-[0.3em] hover:bg-orange-500 transition-all shadow-xl shadow-orange-200"
                 >
                   Generate Recipes From AI Diagnosis
                 </button>
-                <button 
-                  onClick={handleReset}
-                  className="w-full bg-gray-900 text-white py-5 rounded-[1.5rem] font-black uppercase tracking-[0.3em] hover:bg-gray-700 transition-all shadow-xl shadow-orange-200"
-                >
-                  Start New Session
-                </button>
+                  <button 
+                    onClick={handleReset}
+                    className="w-full bg-gray-900 text-white py-5 rounded-[1.5rem] font-black uppercase tracking-[0.3em] hover:bg-gray-700 transition-all shadow-xl shadow-orange-200"
+                  >
+                    Start New Session
+                  </button>
+                </div>
               </div>
             )}
           </div>

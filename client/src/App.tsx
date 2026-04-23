@@ -15,6 +15,7 @@ import MealPlan from './pages/MealPlan';
 import { DiagnosticDashboard } from './pages/DiagnosticDashboard';
 import { Diagnostic } from './pages/Diagnostic';
 import RAGDashboard from './components/RAGDashboard/RAGDashboard';
+import RecipeDetails from './components/RecipeDetails/RecipeDetails';
 
 function App() {
   return (
@@ -32,11 +33,13 @@ function App() {
           <Route path="/auth" element={<Auth />} />
           <Route path="/questionnaire" element={<DiagnosticDashboard />} />
           <Route path="/diagnostic" element={<Diagnostic />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/:taskId" element={<Dashboard />} />
           <Route path="/meal-plan" element={<MealPlan />} />
           <Route path="/meal-plan/:taskId" element={<MealPlan />} />
           <Route path="/diagnostic-dashboard" element={<DiagnosticDashboard />} />
           <Route path="/rag-dashboard" element={<RAGDashboard />} />
+          <Route path="/meal-plan/recipe/:index" element={<RecipeDetails />} />
         </Routes>
       </main>
 

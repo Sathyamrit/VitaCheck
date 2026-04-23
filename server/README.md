@@ -2,6 +2,15 @@
 dramatiq tasks
 
 ### To run the backend main.py server
+    # 1. Create a virtual environment named 'venv'
+    python -m venv venv
+
+    # 2. Activate it (this forces the terminal to see uvicorn)
+    .\venv\Scripts\activate
+
+    # 3. Install your requirements inside this bubble
+    pip install uvicorn fastapi
+
 uvicorn main:app --reload --port 8000
 
 ### Start the Redis service (ubuntu powershell)
